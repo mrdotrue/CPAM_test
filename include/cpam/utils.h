@@ -2,7 +2,9 @@
 #include <optional>
 #include <string.h>
 
+#include "parlay/alloc.h"
 #include "parlay/internal/binary_search.h"
+#include "parlay/parallel.h"
 
 // *******************************************
 //   Utils
