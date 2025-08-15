@@ -1,5 +1,55 @@
 # CPAM
+## Instruction to reproduce
+```
+cd examples/basic_examples  #the example is in interval_graph.h
+make interval_graph
+./interval_graph
+```
+The updates are first grouped by time, at time t, there are two kinds of updates which are store in `parlay::sequence<std::pair<time_at_t,std::pair<insertions_at_t,deletions_at_t>>>`
 
+The insertions and deletions at a specific time t are also grouped by vertices
+- insertion_at_t: `parlay::sequence<vertex_type,parlay::sequence<vertex_type>>` 
+
+  For example, at time 1, you want to insert edges (1,2) (1,3) (2,3).Insert_at_1 will store 
+  ```
+  {
+    {1,{2,3}},
+    {2,{3}}
+  }
+  ```
+- deletion_at_t has the same type of insertion
+
+We use cpam_map<vertex_type, cpam_set<vertex_type>> to store a dynamic graph
+
+For the example in interval_graph.h 
+- at time 1, we insert 5 vertex [1,5] and edges connect each pair of vertices into an empty graph
+- at time 2, we delete vertex 1 and all its edges.
+
+The updates stored will be
+```
+{
+  {1,
+    { //insertion at time 1
+      {1,{2,3,4,5}},  //successfully inserted kv pair 
+      {2,{1,3,4,5}}}, //trigger assertion failure here!
+      {3,{1,2,4,5}},
+      {4,{1,2,3,5}},
+      {5,{1,2,3,4}}
+    },
+    {}  //no deletion at time 1
+  },
+  {2,
+    {}, //no insertion at time 2
+    { //deletion at time 2
+      {1,{2,3,4,5}},
+      {2,{1}}},
+      {3,{1}},
+      {4,{1}},
+      {5,{1}}
+    }
+  }
+}
+```
 ## Overview
 CPAM (Compressed Parallel Augmented Maps) is a parallel C++ library
 providing an implementation of the PaC-tree data structure, which is
